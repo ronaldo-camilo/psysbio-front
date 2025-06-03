@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Novo Grupo</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Criar Novo Grupo</h1>
+        <form id="createGroupForm">
+            <div>
+                <label for="group_name">Nome do Grupo:</label>
+                <input type="text" id="group_name" name="group_name" required style="width: 90%; padding: 8px; margin-bottom:10px;">
+            </div>
+            <p id="createGroupError" style="color: red; display: none; margin-bottom: 10px;"></p>
+            <button type="submit" class="action-button">Criar Grupo</button>
+            <a href="home.html" class="return-button" style="margin-left: 10px;">Cancelar</a>
+        </form>
+    </div>
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            let currentUser;
+            try {
+                currentUser = await api.getCurrentUser();
+                if (!currentUser || !currentUser.isLoggedIn) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+            } catch (e) {
+                console.error("Error getting current user, redirecting to login.", e);
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const createGroupForm = document.getElementById('createGroupForm');
+            const errorElement = document.getElementById('createGroupError');
+
+            createGroupForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                errorElement.style.display = 'none';
+                const groupNameInput = document.getElementById('group_name');
+                const groupName = groupNameInput.value.trim();
+
+                if (!groupName) {
+                    errorElement.textContent = "Nome do grupo não pode ser vazio.";
+                    errorElement.style.display = 'block';
+                    return;
+                }
+
+                try {
+                    await api.createGroup(groupName);
+                    window.location.href = 'home.html';
+                } catch (error) {
+                    console.error("Error creating group:", error);
+                    errorElement.textContent = error.message || "Falha ao criar o grupo.";
+                    errorElement.style.display = 'block';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,415 @@
+/* css/style.css */
+@font-face {
+    font-family: 'Cochocib Script Latin Pro';
+    /* src: url('../fonts/CochocibScriptLatinPro.woff2') format('woff2'),
+           url('../fonts/CochocibScriptLatinPro.woff') format('woff'); */
+    /* Uncomment and provide correct path if you have font files */
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-image: url('../images/background.png'); /* Mantido como .png conforme seu arquivo */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed; /* Keeps background fixed during scroll */
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white background */ /* Mantida a transparência que você ajustou */
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    flex-grow: 1;
+}
+
+.login-container {
+    width: 90%;
+    max-width: 500px; /* Smaller container for login */
+    margin: auto; /* Centers vertically and horizontally with body flex */
+    padding: 30px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    text-align: center;
+}
+
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.page-header .user-info, .page-header .breadcrumb-nav {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.page-header .top-logos img {
+    height: 30px; /* Adjust as needed */
+    margin-left: 10px;
+}
+
+
+.logout-button, .return-button, .action-button {
+    padding: 10px 15px;
+    background-color: #5cb85c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.logout-button:hover, .return-button:hover, .action-button:hover {
+    background-color: #4cae4c;
+}
+
+.return-button {
+    background-color: #f0ad4e;
+}
+.return-button:hover {
+    background-color: #ec971f;
+}
+
+/* Login Page Specific */
+.login-title {
+    font-family: 'Cochocib Script Latin Pro', cursive; /* Use specified font with fallback */
+    font-size: 72px; /* As specified */
+    color: #444;
+    margin-bottom: 30px;
+}
+
+.login-form input[type="text"],
+.login-form input[type="password"] {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Important for width calculation */
+}
+
+.login-form .btn-entrar {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.1em;
+    cursor: pointer;
+    margin-bottom: 15px;
+}
+.login-form .btn-entrar:hover {
+    background-color: #0056b3;
+}
+
+.login-links a {
+    color: #007bff;
+    text-decoration: none;
+    margin: 0 10px;
+    font-size: 0.9em;
+}
+.login-links a:hover {
+    text-decoration: underline;
+}
+
+.login-logos {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* Space between logos */
+}
+.login-logos img {
+    height: 50px; /* Adjust as needed */
+    max-width: 100px; /* Prevent oversized logos */
+}
+.psysbio-logo-container { /* For specific styling of the main logo if needed */
+    text-align: center; /* Center the logo text if it's text */
+    margin-bottom: 20px;
+}
+.psysbio-logo-container img {
+    height: 60px; /* Larger main logo */
+}
+
+
+/* Home & Folder List Boxes */
+.content-boxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Space between boxes */
+    margin-top: 20px;
+}
+
+.content-box {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 20px;
+    min-width: 180px;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #333;
+    font-size: 1.1em;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.content-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.content-box.create-new {
+    background-color: #e9e9e9; /* Slightly different for "create new" */
+    font-style: italic;
+}
+
+/* MyTasks & FolderTasks Kanban */
+.kanban-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px; /* Space between columns */
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.kanban-column {
+    flex: 1; /* Each column takes equal width */
+    background-color: #f0f0f0; /* Cor de fundo base para as colunas */
+    padding: 15px;
+    border-radius: 8px;
+    min-height: 300px; /* Minimum height for columns */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra adicionada */
+    transition: box-shadow 0.3s ease; /* Transição suave para hover (opcional) */
+}
+
+.kanban-column h3 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ccc;
+    text-align: center;
+}
+.kanban-column.todo h3 { color: #d9534f; } /* Reddish for To Do */
+.kanban-column.inprogress h3 { color: #f0ad4e; } /* Orange for In Progress */
+.kanban-column.done h3 { color: #5cb85c; } /* Green for Done */
+
+
+.task-list { /* Esta regra já existia no seu CSS, ligeiramente diferente da minha sugestão anterior, mas ok */
+    list-style: none;
+    padding: 0;
+    min-height: 200px; /* To give some space for dropping if JS were active */
+}
+
+.task-item { /* Esta regra já existia no seu CSS */
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    cursor: grab; /* Indica que o item é agarrável */
+}
+.task-item:last-child { /* Esta regra já existia no seu CSS */
+    margin-bottom: 0;
+}
+
+.add-task-button {
+    display: block;
+    width: calc(100% - 20px); /* Full width within column padding */
+    margin: 10px auto 0;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    color: black;
+    border: none;
+    border-radius: 4px;
+    text-align: center;
+    cursor: pointer;
+}
+.add-task-button:hover {
+    background-color: #ccc;
+}
+
+/* Group Carousel (Static Placeholder) */
+.group-carousel {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #e7e7e7;
+    border-radius: 5px;
+    text-align: center;
+}
+.group-carousel h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #555;
+}
+.group-carousel-items {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap; /* Allow wrapping if many items */
+}
+.group-carousel-item {
+    padding: 8px 12px;
+    background-color: #b0bec5; /* Muted color */
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+.group-carousel-item:hover {
+    background-color: #90a4ae;
+}
+
+.footer-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+/* For folder_tasks.html - separating user and folder kanbans */
+.kanban-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px dashed #ccc;
+}
+.kanban-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+.kanban-section-title {
+    font-size: 1.3em;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+/* General utility for top-right logos placeholder */
+.common-logos {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 5px;
+}
+.common-logos img {
+    height: 25px; /* Adjust as needed */
+    opacity: 0.7; /* Slight fade for background elements */
+}
+
+/* Responsive adjustments (very basic) */
+@media (max-width: 768px) {
+    .kanban-container {
+        flex-direction: column; /* Stack columns on smaller screens */
+    }
+    .content-boxes {
+        justify-content: center;
+    }
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .page-header .logout-button {
+        margin-top: 10px;
+    }
+    .login-title {
+        font-size: 48px; /* Smaller title on mobile */
+    }
+    .login-logos {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .login-logos img {
+        height: 40px;
+    }
+    .common-logos {
+        display: none; /* Optionally hide on very small screens or reposition */
+    }
+}
+
+/* Estilo para o item sendo arrastado */ /* Esta regra já existia no seu CSS */
+.task-item.dragging {
+    opacity: 0.5;
+    border: 2px dashed #007bff; /* Cor azul para destaque */
+    background-color: #eef;
+}
+
+/* Estilo para a coluna sobre a qual um item está sendo arrastado */ /* Esta regra já existia no seu CSS */
+.kanban-column.drag-over .task-list {
+    background-color: #d4edda; /* Um verde claro para indicar área de soltar válida */
+    border: 2px dashed #28a745; /* Borda verde */
+    border-radius: 4px;
+}
+
+/* Opcional: Estilizar a task-list para ter uma altura mínima se vazia */
+/* A regra .task-list acima já define min-height: 200px; */
+/* A regra abaixo parece ser uma duplicata ou variação da que está mais acima, mantendo a que você já tinha. */
+/* Se esta for a mais recente, pode remover a de cima. */
+.task-list { /* Esta já existe acima com min-height: 200px; */
+    list-style: none;
+    padding: 0;
+    min-height: 100px; /* Dá um espaço para soltar mesmo se a lista estiver vazia */
+    /* padding-bottom: 10px; */ /* Espaço no final para soltar */
+}
+
+
+/* --- NOVAS CLASSES ADICIONADAS ABAIXO --- */
+
+/* --- Cores de Fundo Independentes para Colunas Kanban --- */
+
+/* A sua classe base .kanban-column já define um fundo padrão, ex: background-color: #f0f0f0; */
+/* As classes abaixo irão sobrescrever essa cor de fundo quando aplicadas. */
+
+.kanban-column.kanban-bg-light-blue {
+    background-color: #e0f7fa; /* Azul claro */
+}
+
+.kanban-column.kanban-bg-light-green {
+    background-color: #e8f5e9; /* Verde claro */
+}
+
+.kanban-column.kanban-bg-light-yellow {
+    background-color: #fff9c4; /* Amarelo claro */
+}
+
+.kanban-column.kanban-bg-light-pink {
+    background-color: #fce4ec; /* Rosa claro */
+}
+
+.kanban-column.kanban-bg-light-purple {
+    background-color: #f3e5f5; /* Roxo claro */
+}
+
+.kanban-column.kanban-bg-light-orange {
+    background-color: #fff3e0; /* Laranja claro */
+}
+
+.kanban-column.kanban-bg-light-grey {
+    background-color: #f5f5f5; /* Cinza claro (ligeiramente diferente do #f0f0f0 base) */
+}

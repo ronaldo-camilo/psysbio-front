@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Nova Pasta</title> <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1 id="createFolderTitle">Criar Nova Pasta em &lt;Grupo&gt;</h1>
+        <form id="createFolderForm">
+            <div>
+                <label for="folder_name">Nome da Pasta:</label>
+                <input type="text" id="folder_name" name="folder_name" required style="width: 90%; padding: 8px; margin-bottom:10px;">
+            </div>
+            <p id="createFolderError" style="color: red; display: none; margin-bottom: 10px;"></p>
+            <button type="submit" class="action-button">Criar Pasta</button>
+            <a href="#" id="cancelCreateFolderLink" class="return-button" style="margin-left: 10px;">Cancelar</a>
+        </form>
+    </div>
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            let currentUser;
+            try {
+                currentUser = await api.getCurrentUser();
+                if (!currentUser || !currentUser.isLoggedIn) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+            } catch (e) {
+                console.error("Error getting current user, redirecting to login.", e);
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const groupName = urlParams.get('group');
+
+            if (!groupName) {
+                alert("Nome do grupo não especificado para criar a pasta.");
+                window.location.href = 'home.html';
+                return;
+            }
+
+            const decodedGroupName = decodeURIComponent(groupName);
+            document.title = `Criar Pasta em ${decodedGroupName}`;
+            document.getElementById('createFolderTitle').textContent = `Criar Nova Pasta em ${decodedGroupName}`;
+            document.getElementById('cancelCreateFolderLink').href = `folder_list.html?group=${encodeURIComponent(groupName)}`;
+
+            const createFolderForm = document.getElementById('createFolderForm');
+            const errorElement = document.getElementById('createFolderError');
+
+            createFolderForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                errorElement.style.display = 'none';
+                const folderNameInput = document.getElementById('folder_name');
+                const folderName = folderNameInput.value.trim();
+
+                if (!folderName) {
+                    errorElement.textContent = "Nome da pasta não pode ser vazio.";
+                    errorElement.style.display = 'block';
+                    return;
+                }
+
+                try {
+                    await api.createFolder(folderName, decodedGroupName);
+                    window.location.href = `folder_list.html?group=${encodeURIComponent(groupName)}`;
+                } catch (error) {
+                    console.error("Error creating folder:", error);
+                    errorElement.textContent = error.message || "Falha ao criar a pasta.";
+                    errorElement.style.display = 'block';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

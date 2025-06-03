@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minhas Tarefas - Sistema de Tarefas</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <div class="user-info" id="pageTitleHeader">Usuário &rarr; Minhas Tarefas</div>
+            <a href="#" class="logout-button" id="logoutButton">Sair</a>
+        </header>
+
+        <main>
+            <div class="kanban-container">
+                <section id="todo" class="kanban-column todo kanban-bg-light-pink" data-status-slug="todo">
+                    <h3>To Do 📅</h3>
+                    <ul class="task-list" id="todoList">
+                        </ul>
+                    <button class="add-task-button" data-task-type="user_personal" data-status-slug="todo">+ Criar nova tarefa</button>
+                </section>
+
+                <section id="inprogress" class="kanban-column inprogress kanban-bg-light-yellow" data-status-slug="inprogress">
+                    <h3>In Progress ⚙️</h3>
+                    <ul class="task-list" id="inprogressList">
+                        </ul>
+                    <button class="add-task-button" data-task-type="user_personal" data-status-slug="inprogress">+ Criar nova tarefa</button>
+                </section>
+
+                <section id="done" class="kanban-column done kanban-bg-light-green" data-status-slug="done">
+                    <h3>Done ✅</h3>
+                    <ul class="task-list" id="doneList">
+                        </ul>
+                    <button class="add-task-button" data-task-type="user_personal" data-status-slug="done">+ Criar nova tarefa</button>
+                </section>
+            </div>
+
+            <nav class="group-carousel">
+                <h4>Meus Grupos:</h4>
+                <div class="group-carousel-items" id="groupCarouselItems">
+                </div>
+            </nav>
+        </main>
+
+        <footer class="footer-nav">
+            <a href="home.html" class="return-button">&lt; Voltar para Home</a>
+        </footer>
+    </div>
+
+    <div id="taskDetailModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close-button">&times;</span>
+            <h3 id="modalTaskTitle">Título da Tarefa</h3>
+            <p id="modalTaskDescription">Aqui vai a descrição detalhada da tarefa...</p>
+            <div class="modal-info">
+                <p><strong>ID:</strong> <span id="modalTaskId"></span></p>
+                <p><strong>Status:</strong> <span id="modalTaskStatus"></span></p>
+            </div>
+            <div class="modal-actions">
+                <button id="modalEditTask" class="action-button">Editar</button>
+                <button id="modalClose" class="return-button">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="createTaskModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close-button" id="closeCreateTaskModal">&times;</span>
+            <h3>Criar Nova Tarefa</h3>
+            <form id="createTaskForm">
+                <div>
+                    <label for="newTaskTitle">Título:</label>
+                    <input type="text" id="newTaskTitle" name="title" required style="width: 95%; padding: 8px; margin-bottom:10px;">
+                </div>
+                <div>
+                    <label for="newTaskDescription">Descrição:</label>
+                    <textarea id="newTaskDescription" name="description" style="width: 95%; padding: 8px; margin-bottom:10px; min-height: 60px;"></textarea>
+                </div>
+                <input type="hidden" id="createTaskContext_taskType" name="taskType">
+                <input type="hidden" id="createTaskContext_groupName" name="groupName">
+                <input type="hidden" id="createTaskContext_folderName" name="folderName">
+                <input type="hidden" id="createTaskContext_status" name="status">
+                <input type="hidden" id="createTaskContext_targetListSelector" name="targetListSelector">
+                <div id="createTaskError" style="color: red; margin-bottom: 10px; display: none;"></div>
+                <div class="modal-actions">
+                    <button type="submit" class="action-button">Criar Tarefa</button>
+                    <button type="button" id="cancelCreateTaskModal" class="return-button">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            let currentUser;
+            try {
+                currentUser = await api.getCurrentUser();
+                if (!currentUser || !currentUser.isLoggedIn) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+            } catch (e) {
+                console.error("Error getting current user, redirecting to login.", e);
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.getElementById('pageTitleHeader').textContent = `${currentUser.name || currentUser.username} → Minhas Tarefas`;
+            document.getElementById('logoutButton').addEventListener('click', async (e) => {
+                e.preventDefault();
+                await api.logout();
+                window.location.href = 'login.html';
+            });
+
+            async function loadMyTasks() {
+                const taskParams = { userUsername: currentUser.username, taskType: 'user_personal' };
+                try {
+                    const tasks = await api.getTasks(taskParams);
+                    const tasksByStatus = { todo: [], inprogress: [], done: [] };
+                    tasks.forEach(task => {
+                        tasksByStatus[task.status] = tasksByStatus[task.status] || [];
+                        tasksByStatus[task.status].push(task);
+                    });
+
+                    renderTasks('todo', tasksByStatus.todo);
+                    renderTasks('inprogress', tasksByStatus.inprogress);
+                    renderTasks('done', tasksByStatus.done);
+                    
+                    window.initializeKanbanEventListeners(document.querySelector('.kanban-container'));
+
+                } catch (error) {
+                    console.error("Error loading my tasks:", error);
+                }
+            }
+
+            function renderTasks(statusSlug, tasksToRender) {
+                const column = document.querySelector(`.kanban-column[data-status-slug="${statusSlug}"]`);
+                if (!column) return;
+                const taskList = column.querySelector('.task-list');
+                if (!taskList) return;
+
+                taskList.innerHTML = ''; // Clear
+                (tasksToRender || []).forEach(task => {
+                    const taskElement = document.createElement('li');
+                    taskElement.classList.add('task-item');
+                    taskElement.id = task.id; // Ensure tasks from api.js have a unique id
+                    taskElement.textContent = task.title;
+                    taskElement.setAttribute('draggable', 'false');
+                    taskElement.dataset.title = task.title;
+                    taskElement.dataset.description = task.description;
+                    taskList.appendChild(taskElement);
+                });
+            }
+            
+            const groupCarouselItemsContainer = document.getElementById('groupCarouselItems');
+            if (groupCarouselItemsContainer) {
+                try {
+                    const groups = await api.getGroups();
+                    groupCarouselItemsContainer.innerHTML = ''; // Clear
+                    groups.forEach(group => {
+                        const groupLink = document.createElement('a');
+                        groupLink.href = `folder_list.html?group=${encodeURIComponent(group.name)}`;
+                        groupLink.classList.add('group-carousel-item');
+                        groupLink.textContent = group.name;
+                        groupCarouselItemsContainer.appendChild(groupLink);
+                    });
+                } catch (error) {
+                    console.error("Error loading groups for carousel:", error);
+                }
+            }
+            
+            await loadMyTasks();
+        });
+    </script>
+</body>
+</html>
