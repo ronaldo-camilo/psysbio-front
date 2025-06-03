@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Criar Nova Pasta</title> <link rel="stylesheet" href="css/style.css">
+    <title>Criar Nova Pasta</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
         <h1 id="createFolderTitle">Criar Nova Pasta em &lt;Grupo&gt;</h1>
         <form id="createFolderForm">
             <div>
-                <label for="folder_name">Nome da Pasta:</label>
-                <input type="text" id="folder_name" name="folder_name" required style="width: 90%; padding: 8px; margin-bottom:10px;">
+                <label for="folder_name_input">Nome da Pasta:</label> <input type="text" id="folder_name_input" name="folder_name" required style="width: 90%; padding: 8px; margin-bottom:10px;">
             </div>
             <p id="createFolderError" style="color: red; display: none; margin-bottom: 10px;"></p>
             <button type="submit" class="action-button">Criar Pasta</button>
@@ -35,17 +35,17 @@
             }
 
             const urlParams = new URLSearchParams(window.location.search);
-            const groupName = urlParams.get('group');
+            const groupNameParam = urlParams.get('group');
 
-            if (!groupName) {
+            if (!groupNameParam) {
                 alert("Nome do grupo não especificado para criar a pasta.");
                 window.location.href = 'home.html';
                 return;
             }
 
-            const decodedGroupName = decodeURIComponent(groupName);
-            document.title = `Criar Pasta em ${decodedGroupName}`;
-            document.getElementById('createFolderTitle').textContent = `Criar Nova Pasta em ${decodedGroupName}`;
+            const groupName = decodeURIComponent(groupNameParam);
+            document.title = `Criar Pasta em ${groupName}`;
+            document.getElementById('createFolderTitle').textContent = `Criar Nova Pasta em ${groupName}`;
             document.getElementById('cancelCreateFolderLink').href = `folder_list.html?group=${encodeURIComponent(groupName)}`;
 
             const createFolderForm = document.getElementById('createFolderForm');
@@ -54,7 +54,7 @@
             createFolderForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 errorElement.style.display = 'none';
-                const folderNameInput = document.getElementById('folder_name');
+                const folderNameInput = document.getElementById('folder_name_input');
                 const folderName = folderNameInput.value.trim();
 
                 if (!folderName) {
@@ -64,7 +64,7 @@
                 }
 
                 try {
-                    await api.createFolder(folderName, decodedGroupName);
+                    await api.createFolder(folderName, groupName);
                     window.location.href = `folder_list.html?group=${encodeURIComponent(groupName)}`;
                 } catch (error) {
                     console.error("Error creating folder:", error);
