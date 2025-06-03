@@ -11,8 +11,7 @@
         <h1>Criar Novo Grupo</h1>
         <form id="createGroupForm">
             <div>
-                <label for="group_name">Nome do Grupo:</label>
-                <input type="text" id="group_name" name="group_name" required style="width: 90%; padding: 8px; margin-bottom:10px;">
+                <label for="group_name_input">Nome do Grupo:</label> <input type="text" id="group_name_input" name="group_name" required style="width: 90%; padding: 8px; margin-bottom:10px;">
             </div>
             <p id="createGroupError" style="color: red; display: none; margin-bottom: 10px;"></p>
             <button type="submit" class="action-button">Criar Grupo</button>
@@ -41,7 +40,7 @@
             createGroupForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 errorElement.style.display = 'none';
-                const groupNameInput = document.getElementById('group_name');
+                const groupNameInput = document.getElementById('group_name_input');
                 const groupName = groupNameInput.value.trim();
 
                 if (!groupName) {
@@ -51,7 +50,7 @@
                 }
 
                 try {
-                    await api.createGroup(groupName);
+                    await api.createGroup(groupName); // Assuming createGroup doesn't need owner explicitly if handled by API
                     window.location.href = 'home.html';
                 } catch (error) {
                     console.error("Error creating group:", error);

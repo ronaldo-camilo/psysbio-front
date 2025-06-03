@@ -26,15 +26,13 @@
                     <h3>In Progress ⚙️</h3>
                     <ul class="task-list" id="inprogressList">
                         </ul>
-                    <button class="add-task-button" data-task-type="user_personal" data-status-slug="inprogress">+ Criar nova tarefa</button>
-                </section>
+                    </section>
 
                 <section id="done" class="kanban-column done kanban-bg-light-green" data-status-slug="done">
                     <h3>Done ✅</h3>
                     <ul class="task-list" id="doneList">
                         </ul>
-                    <button class="add-task-button" data-task-type="user_personal" data-status-slug="done">+ Criar nova tarefa</button>
-                </section>
+                    </section>
             </div>
 
             <nav class="group-carousel">
@@ -52,8 +50,7 @@
     <div id="taskDetailModal" class="modal">
         <div class="modal-content">
             <span class="modal-close-button">&times;</span>
-            <h3 id="modalTaskTitle">Título da Tarefa</h3>
-            <p id="modalTaskDescription">Aqui vai a descrição detalhada da tarefa...</p>
+            <p id="modalTaskDescription" style="margin-top: 15px; margin-bottom: 15px;">Aqui vai a descrição detalhada da tarefa...</p>
             <div class="modal-info">
                 <p><strong>ID:</strong> <span id="modalTaskId"></span></p>
                 <p><strong>Status:</strong> <span id="modalTaskStatus"></span></p>
@@ -122,13 +119,13 @@
                     const tasks = await api.getTasks(taskParams);
                     const tasksByStatus = { todo: [], inprogress: [], done: [] };
                     tasks.forEach(task => {
-                        tasksByStatus[task.status] = tasksByStatus[task.status] || [];
+                        tasksByStatus[task.status] = tasksByStatus[task.status] || []; // Ensure array exists
                         tasksByStatus[task.status].push(task);
                     });
 
-                    renderTasks('todo', tasksByStatus.todo);
-                    renderTasks('inprogress', tasksByStatus.inprogress);
-                    renderTasks('done', tasksByStatus.done);
+                    renderTasksToColumn('todo', tasksByStatus.todo);
+                    renderTasksToColumn('inprogress', tasksByStatus.inprogress);
+                    renderTasksToColumn('done', tasksByStatus.done);
                     
                     window.initializeKanbanEventListeners(document.querySelector('.kanban-container'));
 
@@ -137,20 +134,26 @@
                 }
             }
 
-            function renderTasks(statusSlug, tasksToRender) {
+            function renderTasksToColumn(statusSlug, tasksToRender) {
                 const column = document.querySelector(`.kanban-column[data-status-slug="${statusSlug}"]`);
-                if (!column) return;
+                if (!column) {
+                    console.warn(`Column for status ${statusSlug} not found.`);
+                    return;
+                }
                 const taskList = column.querySelector('.task-list');
-                if (!taskList) return;
+                if (!taskList) {
+                     console.warn(`Task list for status ${statusSlug} not found.`);
+                    return;
+                }
 
-                taskList.innerHTML = ''; // Clear
+                taskList.innerHTML = ''; // Clear existing tasks
                 (tasksToRender || []).forEach(task => {
                     const taskElement = document.createElement('li');
                     taskElement.classList.add('task-item');
-                    taskElement.id = task.id; // Ensure tasks from api.js have a unique id
+                    taskElement.id = task.id; 
                     taskElement.textContent = task.title;
                     taskElement.setAttribute('draggable', 'false');
-                    taskElement.dataset.title = task.title;
+                    taskElement.dataset.title = task.title; 
                     taskElement.dataset.description = task.description;
                     taskList.appendChild(taskElement);
                 });
@@ -160,7 +163,7 @@
             if (groupCarouselItemsContainer) {
                 try {
                     const groups = await api.getGroups();
-                    groupCarouselItemsContainer.innerHTML = ''; // Clear
+                    groupCarouselItemsContainer.innerHTML = ''; 
                     groups.forEach(group => {
                         const groupLink = document.createElement('a');
                         groupLink.href = `folder_list.html?group=${encodeURIComponent(group.name)}`;

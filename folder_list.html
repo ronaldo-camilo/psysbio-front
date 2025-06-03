@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Pastas</title> <link rel="stylesheet" href="css/style.css">
+    <title>Lista de Pastas</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
@@ -40,7 +41,6 @@
                 return;
             }
 
-
             document.getElementById('logoutButton').addEventListener('click', async (e) => {
                 e.preventDefault();
                 await api.logout();
@@ -48,23 +48,24 @@
             });
 
             const urlParams = new URLSearchParams(window.location.search);
-            const groupName = urlParams.get('group');
+            const groupNameParam = urlParams.get('group');
 
-            if (!groupName) {
+            if (!groupNameParam) {
                 alert("Nome do grupo não especificado.");
                 window.location.href = 'home.html';
                 return;
             }
 
-            document.title = `Lista de Pastas - ${decodeURIComponent(groupName)}`;
-            document.getElementById('groupNameDisplay').textContent = decodeURIComponent(groupName);
+            const groupName = decodeURIComponent(groupNameParam);
+            document.title = `Lista de Pastas - ${groupName}`;
+            document.getElementById('groupNameDisplay').textContent = groupName;
 
             const createNewFolderLink = document.getElementById('createNewFolderLink');
             createNewFolderLink.href = `folder_create.html?group=${encodeURIComponent(groupName)}`;
 
             const foldersContainer = document.getElementById('foldersContainer');
             try {
-                const folders = await api.getFolders(decodeURIComponent(groupName));
+                const folders = await api.getFolders(groupName);
                 folders.forEach(folder => {
                     const folderLink = document.createElement('a');
                     folderLink.href = `folder_tasks.html?group=${encodeURIComponent(groupName)}&folder=${encodeURIComponent(folder.name)}`;
@@ -73,8 +74,7 @@
                     foldersContainer.insertBefore(folderLink, createNewFolderLink);
                 });
             } catch (error) {
-                console.error("Error fetching folders:", error);
-                // Display error in UI if needed
+                console.error(`Error fetching folders for group ${groupName}:`, error);
             }
         });
     </script>

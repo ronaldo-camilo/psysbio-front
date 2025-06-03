@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tarefas da Pasta - Sistema de Tarefas</title> <link rel="stylesheet" href="css/style.css">
+    <title>Tarefas da Pasta - Sistema de Tarefas</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
@@ -70,8 +71,7 @@
     <div id="taskDetailModal" class="modal">
         <div class="modal-content">
             <span class="modal-close-button">&times;</span>
-            <h3 id="modalTaskTitle">Título da Tarefa</h3>
-            <p id="modalTaskDescription">Aqui vai a descrição detalhada da tarefa...</p>
+            <p id="modalTaskDescription" style="margin-top: 15px; margin-bottom: 15px;">Aqui vai a descrição detalhada da tarefa...</p>
             <div class="modal-info">
                 <p><strong>ID:</strong> <span id="modalTaskId"></span></p>
                 <p><strong>Status:</strong> <span id="modalTaskStatus"></span></p>
@@ -134,38 +134,37 @@
             });
 
             const urlParams = new URLSearchParams(window.location.search);
-            const groupName = urlParams.get('group');
-            const folderName = urlParams.get('folder');
+            const groupNameParam = urlParams.get('group');
+            const folderNameParam = urlParams.get('folder');
 
-            if (!groupName || !folderName) {
+            if (!groupNameParam || !folderNameParam) {
                 alert("Grupo ou Pasta não especificados.");
                 window.location.href = 'home.html';
                 return;
             }
-            const decodedGroupName = decodeURIComponent(groupName);
-            const decodedFolderName = decodeURIComponent(folderName);
+            const groupName = decodeURIComponent(groupNameParam);
+            const folderName = decodeURIComponent(folderNameParam);
 
-            document.title = `Tarefas de ${decodedFolderName} - ${decodedGroupName}`;
-            document.getElementById('breadcrumbNav').textContent = `${currentUser.name || currentUser.username} → ${decodedGroupName} → ${decodedFolderName}`;
-            document.getElementById('userTasksTitle').textContent = `Minhas Tarefas em ${decodedFolderName}`;
-            document.getElementById('folderTasksTitle').textContent = `Tarefas Gerais da Pasta: ${decodedFolderName}`;
+            document.title = `Tarefas de ${folderName} - ${groupName}`;
+            document.getElementById('breadcrumbNav').textContent = `${currentUser.name || currentUser.username} → ${groupName} → ${folderName}`;
+            document.getElementById('userTasksTitle').textContent = `Minhas Tarefas em ${folderName}`;
+            document.getElementById('folderTasksTitle').textContent = `Tarefas Gerais da Pasta: ${folderName}`;
             document.getElementById('returnToFolderListLink').href = `folder_list.html?group=${encodeURIComponent(groupName)}`;
 
-            // Set context for "add task" buttons in this specific folder
+            // Set context for "add task" buttons
             document.querySelectorAll('#userFolderTasksSection .add-task-button').forEach(btn => {
-                btn.dataset.groupName = groupName; // Already encoded from URL or encode it
-                btn.dataset.folderName = folderName; // Already encoded from URL or encode it
+                btn.dataset.groupName = groupName;
+                btn.dataset.folderName = folderName;
             });
             document.querySelectorAll('#generalFolderTasksSection .add-task-button').forEach(btn => {
                 btn.dataset.groupName = groupName;
                 btn.dataset.folderName = folderName;
             });
 
-
             function renderTasksToDOM(taskTypePrefix, tasks) {
                 const statuses = ['todo', 'inprogress', 'done'];
                 const tasksByStatus = { todo: [], inprogress: [], done: [] };
-                tasks.forEach(task => {
+                (tasks || []).forEach(task => {
                     tasksByStatus[task.status] = tasksByStatus[task.status] || [];
                     tasksByStatus[task.status].push(task);
                 });
@@ -174,7 +173,7 @@
                     const listId = `${taskTypePrefix}${statusSlug.charAt(0).toUpperCase() + statusSlug.slice(1)}List`;
                     const taskListElement = document.getElementById(listId);
                     if (taskListElement) {
-                        taskListElement.innerHTML = ''; // Clear list
+                        taskListElement.innerHTML = '';
                         (tasksByStatus[statusSlug] || []).forEach(task => {
                             const taskElement = document.createElement('li');
                             taskElement.classList.add('task-item');
@@ -191,28 +190,25 @@
                 });
             }
 
-            async function loadFolderTasks() {
+            async function loadAllFolderTasks() {
                 try {
-                    // User specific tasks in this folder
                     const userFolderTaskParams = {
                         userUsername: currentUser.username,
-                        groupName: decodedGroupName,
-                        folderName: decodedFolderName,
+                        groupName: groupName,
+                        folderName: folderName,
                         taskType: 'user_folder'
                     };
                     const userFolderTasks = await api.getTasks(userFolderTaskParams);
                     renderTasksToDOM('userFolder', userFolderTasks);
 
-                    // General folder tasks
                     const generalFolderTaskParams = {
-                        groupName: decodedGroupName,
-                        folderName: decodedFolderName,
+                        groupName: groupName,
+                        folderName: folderName,
                         taskType: 'folder_general'
                     };
                     const generalFolderTasks = await api.getTasks(generalFolderTaskParams);
                     renderTasksToDOM('generalFolder', generalFolderTasks);
 
-                    // Initialize Kanban for both sections after rendering all tasks
                     window.initializeKanbanEventListeners(document.getElementById('userFolderKanbanContainer'));
                     window.initializeKanbanEventListeners(document.getElementById('generalFolderKanbanContainer'));
 
@@ -227,7 +223,7 @@
                     const groups = await api.getGroups();
                     groupCarouselItemsContainer.innerHTML = '';
                     groups.forEach(group => {
-                        if (group.name !== decodedGroupName) { // Optionally filter out current group
+                        if (group.name !== groupName) { 
                             const groupLink = document.createElement('a');
                             groupLink.href = `folder_list.html?group=${encodeURIComponent(group.name)}`;
                             groupLink.classList.add('group-carousel-item');
@@ -240,7 +236,7 @@
                 }
             }
 
-            await loadFolderTasks();
+            await loadAllFolderTasks();
         });
     </script>
 </body>

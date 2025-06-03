@@ -17,10 +17,12 @@
 
         <form class="login-form" id="loginForm">
             <div>
-                <label for="loginUsername">Login:</label> <input type="text" id="loginUsername" name="login" required>
+                <label for="loginUsername">Login:</label>
+                <input type="text" id="loginUsername" name="login" required>
             </div>
             <div>
-                <label for="loginPassword">Senha:</label> <input type="password" id="loginPassword" name="senha" required>
+                <label for="loginPassword">Senha:</label>
+                <input type="password" id="loginPassword" name="senha" required>
             </div>
             <p id="loginError" style="color: red; display: none; margin-bottom: 10px;"></p>
             <button type="submit" class="btn-entrar">Entrar</button>
@@ -48,9 +50,7 @@
                 }
             } catch (e) {
                 console.warn("Error checking current user, proceeding to login.", e);
-                // Allow login page to render if api.js or localStorage is problematic initially
             }
-
 
             const loginForm = document.getElementById('loginForm');
             const loginError = document.getElementById('loginError');
