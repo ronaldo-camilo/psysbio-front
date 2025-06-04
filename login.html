@@ -11,10 +11,8 @@
         <div class="psysbio-logo-container">
             <img src="images/psysbio_logo.png" alt="PsysBio Logo">
         </div>
-
         <h1 class="login-title">Sistema de organização de tarefas</h1>
         <p class="login-subtitle">Grupo de pesquisa Profª. Dra. Helena Brentani</p>
-
         <form class="login-form" id="loginForm">
             <div>
                 <label for="loginUsername">Login:</label>
@@ -27,59 +25,52 @@
             <p id="loginError" style="color: red; display: none; margin-bottom: 10px;"></p>
             <button type="submit" class="btn-entrar">Entrar</button>
         </form>
-
         <div class="login-links">
             <a href="#">Esqueci minha senha</a>
             <a href="#">Novo cadastro</a>
         </div>
-
         <div class="login-logos">
             <img src="images/lab_patologia_logo.png" alt="Laboratório de Patologia Clínica Logo">
             <img src="images/biobanco_logo.png" alt="Biobanco Logo">
             <img src="images/protea_logo.png" alt="PROTEA Logo">
         </div>
     </div>
-
     <script src="js/api.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
+            console.log("LOG: login.html DOMContentLoaded - Script da página iniciado.");
+            if (typeof api === 'undefined') {
+                console.error("ERRO FATAL: O objeto 'api' não está definido. Verifique 'js/api.js'.");
+                alert("ERRO DE CONFIGURAÇÃO: Impossível carregar a página de login.");
+                return;
+            }
             try {
                 const user = await api.getCurrentUser();
                 if (user && user.isLoggedIn) {
-                    window.location.href = 'home.html'; // Already logged in
+                    window.location.href = 'home.html';
+                    return;
                 }
-            } catch (e) {
-                console.warn("Error checking current user, proceeding to login.", e);
-            }
+            } catch (e) { console.error("ERRO em login.html ao chamar api.getCurrentUser():", e); }
 
             const loginForm = document.getElementById('loginForm');
             const loginError = document.getElementById('loginError');
-
-            loginForm.addEventListener('submit', async (event) => {
-                event.preventDefault();
-                loginError.style.display = 'none';
-                const username = document.getElementById('loginUsername').value;
-                const password = document.getElementById('loginPassword').value;
-
-                if (!username || !password) {
-                    loginError.textContent = 'Por favor, preencha o login e a senha.';
-                    loginError.style.display = 'block';
-                    return;
-                }
-
-                try {
-                    const response = await api.login(username, password);
-                    if (response.success) {
-                        window.location.href = 'home.html';
-                    } else {
-                        loginError.textContent = response.message || 'Login falhou.';
-                        loginError.style.display = 'block';
-                    }
-                } catch (error) {
-                    loginError.textContent = error.message || 'Erro ao tentar logar.';
-                    loginError.style.display = 'block';
-                }
-            });
+            if (loginForm) {
+                loginForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    if(loginError) loginError.style.display = 'none';
+                    const usernameInput = document.getElementById('loginUsername');
+                    const passwordInput = document.getElementById('loginPassword');
+                    if (!usernameInput || !passwordInput) { /* ... erro ... */ return; }
+                    const username = usernameInput.value;
+                    const password = passwordInput.value;
+                    if (!username || !password) { /* ... erro ... */ return; }
+                    try {
+                        const response = await api.login(username, password);
+                        if (response.success) { window.location.href = 'home.html'; }
+                        else { if(loginError) { /* ... erro ... */ }}
+                    } catch (error) { if(loginError) { /* ... erro ... */ }}
+                });
+            } else { console.error("ERRO: Formulário 'loginForm' não encontrado."); }
         });
     </script>
 </body>

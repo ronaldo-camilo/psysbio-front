@@ -10,72 +10,34 @@
     <div class="container">
         <header class="page-header">
             <div class="user-info" id="groupNameDisplay">Grupo</div>
-            <a href="#" class="logout-button" id="logoutButton">Sair</a>
+            <div class="header-buttons">
+                <button id="resetDataButton" class="reset-button">Resetar Dados</button>
+                <a href="#" class="logout-button" id="logoutButton">Sair</a>
+            </div>
         </header>
-
         <main>
             <div class="content-boxes" id="foldersContainer">
-                <a href="#" id="createNewFolderLink" class="content-box create-new">
-                    + Criar nova pasta
-                </a>
+                <a href="#" id="createNewFolderLink" class="content-box create-new">+ Criar nova pasta</a>
             </div>
         </main>
-
         <footer class="footer-nav">
             <a href="home.html" class="return-button">&lt; Voltar para Home</a>
         </footer>
     </div>
     <script src="js/api.js"></script>
-    <script>
+    <script src="js/main.js"></script> <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            let currentUser;
-            try {
-                currentUser = await api.getCurrentUser();
-                if (!currentUser || !currentUser.isLoggedIn) {
-                    window.location.href = 'login.html';
-                    return;
-                }
-            } catch (e) {
-                console.error("Error getting current user, redirecting to login.", e);
-                window.location.href = 'login.html';
-                return;
-            }
-
-            document.getElementById('logoutButton').addEventListener('click', async (e) => {
-                e.preventDefault();
-                await api.logout();
-                window.location.href = 'login.html';
-            });
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const groupNameParam = urlParams.get('group');
-
-            if (!groupNameParam) {
-                alert("Nome do grupo não especificado.");
-                window.location.href = 'home.html';
-                return;
-            }
-
+            // Script inline do folder_list.html como fornecido anteriormente
+            let currentUser; try { currentUser = await api.getCurrentUser(); if (!currentUser || !currentUser.isLoggedIn) { window.location.href = 'login.html'; return; } } catch (e) { window.location.href = 'login.html'; return; }
+            document.getElementById('logoutButton').addEventListener('click', async (e) => { e.preventDefault(); await api.logout(); window.location.href = 'login.html';});
+            const urlParams = new URLSearchParams(window.location.search); const groupNameParam = urlParams.get('group');
+            if (!groupNameParam) { alert("Nome do grupo não especificado."); window.location.href = 'home.html'; return; }
             const groupName = decodeURIComponent(groupNameParam);
-            document.title = `Lista de Pastas - ${groupName}`;
-            document.getElementById('groupNameDisplay').textContent = groupName;
-
-            const createNewFolderLink = document.getElementById('createNewFolderLink');
-            createNewFolderLink.href = `folder_create.html?group=${encodeURIComponent(groupName)}`;
-
+            document.title = `Lista de Pastas - ${groupName}`; document.getElementById('groupNameDisplay').textContent = groupName;
+            const createNewFolderLink = document.getElementById('createNewFolderLink'); createNewFolderLink.href = `folder_create.html?group=${encodeURIComponent(groupName)}`;
             const foldersContainer = document.getElementById('foldersContainer');
-            try {
-                const folders = await api.getFolders(groupName);
-                folders.forEach(folder => {
-                    const folderLink = document.createElement('a');
-                    folderLink.href = `folder_tasks.html?group=${encodeURIComponent(groupName)}&folder=${encodeURIComponent(folder.name)}`;
-                    folderLink.classList.add('content-box');
-                    folderLink.textContent = folder.name;
-                    foldersContainer.insertBefore(folderLink, createNewFolderLink);
-                });
-            } catch (error) {
-                console.error(`Error fetching folders for group ${groupName}:`, error);
-            }
+            try { const folders = await api.getFolders(groupName); folders.forEach(folder => { const fL = document.createElement('a'); fL.href = `folder_tasks.html?group=${encodeURIComponent(groupName)}&folder=${encodeURIComponent(folder.name)}`; fL.classList.add('content-box'); fL.textContent = folder.name; foldersContainer.insertBefore(fL, createNewFolderLink); });
+            } catch (error) { console.error(`Error fetching folders for ${groupName}:`, error); }
         });
     </script>
 </body>

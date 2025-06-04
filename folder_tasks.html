@@ -10,9 +10,11 @@
     <div class="container">
         <header class="page-header">
             <div class="breadcrumb-nav" id="breadcrumbNav">&lt;Usuário&gt; &rarr; &lt;Grupo&gt; &rarr; &lt;Pasta&gt;</div>
-            <a href="#" class="logout-button" id="logoutButton">Sair</a>
+            <div class="header-buttons">
+                <button id="resetDataButton" class="reset-button">Resetar Dados</button>
+                <a href="#" class="logout-button" id="logoutButton">Sair</a>
+            </div>
         </header>
-
         <main>
             <section class="kanban-section" id="userFolderTasksSection">
                 <h2 class="kanban-section-title" id="userTasksTitle">&lt;Usuário&gt; em &lt;Pasta&gt;</h2>
@@ -25,13 +27,11 @@
                     <div class="kanban-column inprogress kanban-bg-light-yellow" data-status-slug="inprogress">
                         <h3>In Progress ⚙️</h3>
                         <ul class="task-list" id="userFolderInprogressList"></ul>
-                         <button class="add-task-button" data-task-type="user_folder" data-status-slug="inprogress">+ Minha tarefa aqui</button>
-                    </div>
+                         </div>
                     <div class="kanban-column done kanban-bg-light-green" data-status-slug="done">
                         <h3>Done ✅</h3>
                         <ul class="task-list" id="userFolderDoneList"></ul>
-                        <button class="add-task-button" data-task-type="user_folder" data-status-slug="done">+ Minha tarefa aqui</button>
-                    </div>
+                        </div>
                 </div>
             </section>
 
@@ -46,13 +46,11 @@
                     <div class="kanban-column inprogress kanban-bg-light-yellow" data-status-slug="inprogress">
                         <h3>In Progress ⚙️</h3>
                         <ul class="task-list" id="generalFolderInprogressList"></ul>
-                        <button class="add-task-button" data-task-type="folder_general" data-status-slug="inprogress">+ Tarefa da pasta</button>
-                    </div>
+                        </div>
                     <div class="kanban-column done kanban-bg-light-green" data-status-slug="done">
                         <h3>Done ✅</h3>
                         <ul class="task-list" id="generalFolderDoneList"></ul>
-                        <button class="add-task-button" data-task-type="folder_general" data-status-slug="done">+ Tarefa da pasta</button>
-                    </div>
+                        </div>
                 </div>
             </section>
 
@@ -62,7 +60,6 @@
                     </div>
             </nav>
         </main>
-
         <footer class="footer-nav">
             <a href="#" class="return-button" id="returnToFolderListLink">&lt; Voltar</a>
         </footer>
@@ -90,11 +87,11 @@
             <form id="createTaskForm">
                 <div>
                     <label for="newTaskTitle">Título:</label>
-                    <input type="text" id="newTaskTitle" name="title" required style="width: 95%; padding: 8px; margin-bottom:10px;">
+                    <input type="text" id="newTaskTitle" name="title" required>
                 </div>
                 <div>
                     <label for="newTaskDescription">Descrição:</label>
-                    <textarea id="newTaskDescription" name="description" style="width: 95%; padding: 8px; margin-bottom:10px; min-height: 60px;"></textarea>
+                    <textarea id="newTaskDescription" name="description"></textarea>
                 </div>
                 <input type="hidden" id="createTaskContext_taskType" name="taskType">
                 <input type="hidden" id="createTaskContext_groupName" name="groupName">
@@ -107,6 +104,26 @@
                     <button type="button" id="cancelCreateTaskModal" class="return-button">Cancelar</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="changeStatusModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close-button" id="closeChangeStatusModal">&times;</span>
+            <h4>Mudar Status da Tarefa</h4>
+            <p style="margin-bottom: 5px;">Tarefa: <strong id="changeStatusTaskTitlePreview">Nome da Tarefa Aqui</strong></p>
+            <small style="display: block; margin-bottom: 15px; color: #777;">ID: <span id="changeStatusTaskIdPreview"></span></small>
+            <input type="hidden" id="changeStatusProcessingTaskId">
+            <p><strong>Escolha o novo status:</strong></p>
+            <div class="status-options">
+                <button class="status-option-button action-button" data-status="todo" style="background-color: #d9534f;">To Do</button>
+                <button class="status-option-button action-button" data-status="inprogress" style="background-color: #f0ad4e;">In Progress</button>
+                <button class="status-option-button action-button" data-status="done" style="background-color: #5cb85c;">Done</button>
+            </div>
+            <div id="changeStatusError" style="color: red; margin-bottom: 10px; display: none;"></div>
+            <div class="modal-actions" style="border-top: 1px solid #eee; padding-top: 15px;">
+                <button type="button" id="cancelChangeStatusModal" class="return-button">Cancelar</button>
+            </div>
         </div>
     </div>
 
@@ -138,8 +155,8 @@
             const folderNameParam = urlParams.get('folder');
 
             if (!groupNameParam || !folderNameParam) {
-                alert("Grupo ou Pasta não especificados.");
-                window.location.href = 'home.html';
+                alert("Nome do grupo ou da pasta não especificado.");
+                window.location.href = 'home.html'; 
                 return;
             }
             const groupName = decodeURIComponent(groupNameParam);
@@ -151,7 +168,6 @@
             document.getElementById('folderTasksTitle').textContent = `Tarefas Gerais da Pasta: ${folderName}`;
             document.getElementById('returnToFolderListLink').href = `folder_list.html?group=${encodeURIComponent(groupName)}`;
 
-            // Set context for "add task" buttons
             document.querySelectorAll('#userFolderTasksSection .add-task-button').forEach(btn => {
                 btn.dataset.groupName = groupName;
                 btn.dataset.folderName = folderName;
@@ -164,6 +180,7 @@
             function renderTasksToDOM(taskTypePrefix, tasks) {
                 const statuses = ['todo', 'inprogress', 'done'];
                 const tasksByStatus = { todo: [], inprogress: [], done: [] };
+
                 (tasks || []).forEach(task => {
                     tasksByStatus[task.status] = tasksByStatus[task.status] || [];
                     tasksByStatus[task.status].push(task);
@@ -173,19 +190,18 @@
                     const listId = `${taskTypePrefix}${statusSlug.charAt(0).toUpperCase() + statusSlug.slice(1)}List`;
                     const taskListElement = document.getElementById(listId);
                     if (taskListElement) {
-                        taskListElement.innerHTML = '';
+                        taskListElement.innerHTML = ''; 
                         (tasksByStatus[statusSlug] || []).forEach(task => {
                             const taskElement = document.createElement('li');
                             taskElement.classList.add('task-item');
                             taskElement.id = task.id;
                             taskElement.textContent = task.title;
-                            taskElement.setAttribute('draggable', 'false');
                             taskElement.dataset.title = task.title;
                             taskElement.dataset.description = task.description;
                             taskListElement.appendChild(taskElement);
                         });
                     } else {
-                        console.warn(`Task list element with ID ${listId} not found.`);
+                        console.warn(`Elemento da lista de tarefas não encontrado: ${listId}`);
                     }
                 });
             }
@@ -194,24 +210,29 @@
                 try {
                     const userFolderTaskParams = {
                         userUsername: currentUser.username,
-                        groupName: groupName,
-                        folderName: folderName,
+                        groupName,
+                        folderName,
                         taskType: 'user_folder'
                     };
                     const userFolderTasks = await api.getTasks(userFolderTaskParams);
                     renderTasksToDOM('userFolder', userFolderTasks);
 
                     const generalFolderTaskParams = {
-                        groupName: groupName,
-                        folderName: folderName,
+                        groupName,
+                        folderName,
                         taskType: 'folder_general'
                     };
                     const generalFolderTasks = await api.getTasks(generalFolderTaskParams);
                     renderTasksToDOM('generalFolder', generalFolderTasks);
-
-                    window.initializeKanbanEventListeners(document.getElementById('userFolderKanbanContainer'));
-                    window.initializeKanbanEventListeners(document.getElementById('generalFolderKanbanContainer'));
-
+                    
+                    if (typeof window.initializeKanbanEventListeners === 'function') {
+                        console.log("LOG folder_tasks: Chamando initializeKanbanEventListeners para userFolderKanbanContainer");
+                        window.initializeKanbanEventListeners(document.getElementById('userFolderKanbanContainer'));
+                        console.log("LOG folder_tasks: Chamando initializeKanbanEventListeners para generalFolderKanbanContainer");
+                        window.initializeKanbanEventListeners(document.getElementById('generalFolderKanbanContainer'));
+                    } else {
+                        console.error("ERRO em folder_tasks.html: A função window.initializeKanbanEventListeners não está definida. Verifique main.js.");
+                    }
                 } catch (error) {
                     console.error("Error loading folder tasks:", error);
                 }
@@ -221,18 +242,16 @@
             if (groupCarouselItemsContainer) {
                 try {
                     const groups = await api.getGroups();
-                    groupCarouselItemsContainer.innerHTML = '';
-                    groups.forEach(group => {
-                        if (group.name !== groupName) { 
-                            const groupLink = document.createElement('a');
-                            groupLink.href = `folder_list.html?group=${encodeURIComponent(group.name)}`;
-                            groupLink.classList.add('group-carousel-item');
-                            groupLink.textContent = group.name;
-                            groupCarouselItemsContainer.appendChild(groupLink);
-                        }
+                    groupCarouselItemsContainer.innerHTML = ''; 
+                    groups.forEach(g => {
+                        const a = document.createElement('a');
+                        a.href = `folder_list.html?group=${encodeURIComponent(g.name)}`;
+                        a.className = 'group-carousel-item'; 
+                        a.textContent = g.name;
+                        groupCarouselItemsContainer.appendChild(a);
                     });
                 } catch (error) {
-                    console.error("Error loading groups for carousel:", error);
+                    console.error("Erro ao carregar grupos para o carrossel:", error);
                 }
             }
 

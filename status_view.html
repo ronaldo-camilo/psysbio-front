@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visão Geral por Status</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <div class="user-info" id="pageTitleHeader">Visão Geral por Status</div>
+            <div class="header-buttons">
+                <button id="resetDataButton" class="reset-button">Resetar Dados</button>
+                <a href="#" class="logout-button" id="logoutButton">Sair</a>
+            </div>
+        </header>
+        <main>
+            <h1 id="statusViewTitle" style="text-align: center; margin-bottom: 20px;">Carregando...</h1>
+            <div id="tasksDisplayArea">
+                </div>
+        </main>
+        <footer class="footer-nav">
+            <a href="home.html" class="return-button">&lt; Voltar para Home</a>
+        </footer>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/main.js"></script> <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            let currentUser;
+            try {
+                currentUser = await api.getCurrentUser();
+                if (!currentUser || !currentUser.isLoggedIn) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+            } catch (e) {
+                console.error("Error getting current user, redirecting to login.", e);
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.getElementById('pageTitleHeader').textContent = `${currentUser.name || currentUser.username} → Visão por Status`;
+            document.getElementById('logoutButton').addEventListener('click', async (e) => {
+                e.preventDefault();
+                await api.logout();
+                window.location.href = 'login.html';
+            });
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const statusFilter = urlParams.get('status'); // 'todo', 'inprogress', ou 'done'
+
+            const statusViewTitle = document.getElementById('statusViewTitle');
+            const tasksDisplayArea = document.getElementById('tasksDisplayArea');
+
+            if (!statusFilter || !['todo', 'inprogress', 'done'].includes(statusFilter)) {
+                statusViewTitle.textContent = "Status inválido ou não especificado.";
+                tasksDisplayArea.innerHTML = '<p style="text-align:center;">Por favor, selecione um status válido na página Home.</p>';
+                return;
+            }
+
+            let statusDisplayTerm = '';
+            if (statusFilter === 'todo') statusDisplayTerm = 'To Do 📅';
+            else if (statusFilter === 'inprogress') statusDisplayTerm = 'In Progress ⚙️';
+            else if (statusFilter === 'done') statusDisplayTerm = 'Done ✅';
+
+            document.title = `Visão Geral - ${statusDisplayTerm}`;
+            statusViewTitle.textContent = `Visão Geral - ${statusDisplayTerm}`;
+
+            async function loadAndDisplayTasksByStatus() {
+                tasksDisplayArea.innerHTML = '<p style="text-align:center;">Carregando tarefas...</p>';
+                let allTasksForStatus = [];
+
+                try {
+                    const groups = await api.getGroups();
+                    if (!groups || groups.length === 0) {
+                         tasksDisplayArea.innerHTML = '<p style="text-align:center;">Nenhum grupo encontrado.</p>';
+                         return;
+                    }
+
+                    for (const group of groups) {
+                        const folders = await api.getFolders(group.name);
+                        if (!folders || folders.length === 0) continue;
+
+                        let tasksInGroupForStatus = [];
+
+                        for (const folder of folders) {
+                            let tasksInFolder = [];
+                            // Buscar tarefas do usuário na pasta
+                            const userFolderTasksParams = {
+                                userUsername: currentUser.username,
+                                groupName: group.name,
+                                folderName: folder.name,
+                                taskType: 'user_folder'
+                            };
+                            const userFolderTasks = await api.getTasks(userFolderTasksParams);
+                            tasksInFolder.push(...userFolderTasks.filter(task => task.status === statusFilter));
+
+                            // Buscar tarefas gerais da pasta
+                            const generalFolderTasksParams = {
+                                groupName: group.name,
+                                folderName: folder.name,
+                                taskType: 'folder_general'
+                            };
+                            const generalFolderTasks = await api.getTasks(generalFolderTasksParams);
+                            tasksInFolder.push(...generalFolderTasks.filter(task => task.status === statusFilter));
+                            
+                            if (tasksInFolder.length > 0) {
+                                tasksInGroupForStatus.push({
+                                    groupName: group.name,
+                                    folderName: folder.name,
+                                    tasks: tasksInFolder
+                                });
+                            }
+                        }
+                        if(tasksInGroupForStatus.length > 0){
+                            allTasksForStatus.push(...tasksInGroupForStatus);
+                        }
+                    }
+
+                    renderTasks(allTasksForStatus);
+
+                } catch (error) {
+                    console.error(`Error loading tasks for status ${statusFilter}:`, error);
+                    tasksDisplayArea.innerHTML = `<p style="text-align:center; color:red;">Erro ao carregar tarefas: ${error.message}</p>`;
+                }
+            }
+
+            function renderTasks(tasksByFolder) {
+                if (!tasksByFolder || tasksByFolder.length === 0) {
+                    tasksDisplayArea.innerHTML = `<p style="text-align:center;">Nenhuma tarefa encontrada com o status "${statusDisplayTerm}".</p>`;
+                    return;
+                }
+
+                let html = '';
+                tasksByFolder.forEach(folderData => {
+                    html += `
+                        <div class="group-task-block">
+                            <h3>${folderData.groupName} / ${folderData.folderName}</h3>
+                            <ul class="task-list-status-view">`;
+                    folderData.tasks.forEach(task => {
+                        // Adicionando data attributes para o modal de detalhes, se for usado no futuro
+                        html += `<li class="task-item" id="${task.id}" data-title="${task.title}" data-description="${task.description || ''}" data-status="${task.status}">
+                                    ${task.title}
+                                 </li>`;
+                    });
+                    html += `</ul>
+                        </div>`;
+                });
+                tasksDisplayArea.innerHTML = html;
+
+                // Se os modais forem adicionados a esta página e a interação for desejada:
+                // Inicializar listeners para os task-items (para abrir taskDetailModal, por exemplo)
+                // if (typeof window.initializeKanbanEventListeners === 'function') {
+                //    console.log("LOG status_view: Chamando initializeKanbanEventListeners para tasksDisplayArea");
+                //    // Nota: initializeKanbanEventListeners é para drag-and-drop. Para apenas abrir modal,
+                //    // pode ser necessário um listener mais simples ou adaptar a função.
+                //    // Por ora, vamos focar na visualização.
+                //    document.querySelectorAll('#tasksDisplayArea .task-item').forEach(item => {
+                //        item.addEventListener('click', () => {
+                //            if (typeof openDetailModal === 'function') { // Supondo que openDetailModal está em main.js
+                //                openDetailModal(item);
+                //            } else {
+                //                 console.warn("openDetailModal não definida.");
+                //            }
+                //        });
+                //    });
+                // }
+            }
+            
+            loadAndDisplayTasksByStatus();
+        });
+    </script>
+</body>
+</html>
